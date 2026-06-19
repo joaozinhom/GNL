@@ -1,48 +1,34 @@
-# include <unistd.h>
-# include <stdlib.h>
-//#include "get_next_line.h"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line_utils.c                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: joaorosa <joaorosa@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/06/19 15:09:02 by joaorosa          #+#    #+#             */
+/*   Updated: 2026/06/19 19:56:44 by joaorosa         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-char	*ft_substr(char const *s, unsigned int start, size_t len)
+#include "get_next_line.h"
+
+void	*ft_memcpy(void *dst, const void *src, size_t n)
 {
 	size_t		i;
-	size_t		j;
-	char		*str;
+	char		*d;
+	const char	*s;
 
-	str = (char *)malloc(sizeof(*s) * (len + 1));
-	if (str == NULL)
-	{
-		return (str);
-	}
+	if (!dst && !src)
+		return (dst);
+	s = (const char *)src;
+	d = (char *)dst;
 	i = 0;
-	j = 0;
-	while (s[i])
+	while (i < n)
 	{
-		if (i >= start && j < len)
-		{
-			str[j] = s[i];
-			j++;
-		}
+		d[i] = s[i];
 		i++;
 	}
-	str[j] = 0;
-	return (str);
-}
-
-char	*ft_strchr(const char *s, int c)
-{
-	while (*s != '\0')
-	{
-		if (*s == (char)c)
-		{
-			return ((char *)s);
-		}
-		s = s + 1;
-	}
-	if ((char)c == '\0')
-	{
-		return ((char *)s);
-	}
-	return (NULL);
+	return (dst);
 }
 
 size_t	ft_strlen(const char *s)
@@ -51,23 +37,22 @@ size_t	ft_strlen(const char *s)
 
 	i = 0;
 	while (s[i] != '\0')
-	{
 		i++;
-	}
 	return (i);
 }
 
-size_t	ft_strlcpy(char *dest, const char *src, size_t size)
+int	read_into_remainder(int fd, char *remainder)
 {
-	size_t	len;
+	char	buf[BUFFER_SIZE];
+	ssize_t	bytes_read;
 
-	len = ft_strlen((char *)src);
-	if (len + 1 < size)
-		dest = ft_memcpy(dest, src, len + 1);
-	else if (size != 0)
+	while (find_newline(remainder) < 0)
 	{
-		dest = ft_memcpy(dest, src, size - 1);
-		dest[size - 1] = '\0';
+		bytes_read = read(fd, buf, BUFFER_SIZE - 1);
+		if (bytes_read <= 0)
+			return (bytes_read);
+		buf[bytes_read] = '\0';
+		ft_memcpy(remainder + ft_strlen(remainder), buf, ft_strlen(buf) + 1);
 	}
-	return (len);
+	return (1);
 }
