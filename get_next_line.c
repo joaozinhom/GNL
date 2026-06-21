@@ -6,72 +6,99 @@
 /*   By: joaorosa <joaorosa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/19 15:08:50 by joaorosa          #+#    #+#             */
-/*   Updated: 2026/06/19 19:56:30 by joaorosa         ###   ########.fr       */
+/*   Updated: 2026/06/21 13:56:25 by joaorosa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-int	find_newline(char *s)
-{
-	int	i;
-
-	i = 0;
-	while (s[i] != '\0')
-	{
-		if (s[i] == '\n')
-			return (i);
-		i++;
-	}
-	return (-1);
-}
-
-char	*extract_line(char *remainder, int nl_pos)
+static char	*extract_line(char *stash)
 {
 	char	*line;
+	size_t	i;
 
-	line = malloc(nl_pos + 2);
+	if (!stash || !stash[0])
+		return (NULL);
+	i = 0;
+	while (stash[i] && stash[i] != '\n')
+		i++;
+	if (stash[i] == '\n')
+		i++;
+	line = malloc(i + 1);
 	if (!line)
 		return (NULL);
-	ft_memcpy(line, remainder, nl_pos + 1);
-	line[nl_pos + 1] = '\0';
+	ft_memcpy(line, stash, i);
+	line[i] = '\0';
 	return (line);
 }
 
-void	shift_remainder(char *remainder, int nl_pos)
+static char	*update_stash(char *stash)
 {
-	size_t	len;
 	size_t	i;
+	size_t	j;
+	char	*rest;
 
-	len = ft_strlen(remainder);
 	i = 0;
-	while (nl_pos + 1 + i < len)
-	{
-		remainder[i] = remainder[nl_pos + 1 + i];
+	while (stash[i] && stash[i] != '\n')
 		i++;
+	if (!stash[i])
+	{
+		free(stash);
+		return (NULL);
 	}
-	remainder[i] = '\0';
+	i++;
+	rest = malloc(ft_strlen(stash) - i + 1);
+	if (!rest)
+		return (free(stash), NULL);
+	j = 0;
+	while (stash[i])
+		rest[j++] = stash[i++];
+	rest[j] = '\0';
+	free(stash);
+	return (rest);
 }
 
-char	*gnl(int fd)
+static char	*read_to_stash(int fd, char *stash)
 {
-	static char	remainder[BUFFER_SIZE * 2];
-	int			nl_pos;
+	char	*buf;
+	ssize_t	bytes;
+
+	buf = malloc(BUFFER_SIZE + 1);
+	if (!buf)
+		return (free(stash), NULL);
+	bytes = 1;
+	while (!ft_strchr(stash, '\n') && bytes > 0)
+	{
+		bytes = read(fd, buf, BUFFER_SIZE);
+		if (bytes < 0)
+			return (free(buf), free(stash), NULL);
+		buf[bytes] = '\0';
+		stash = ft_strjoin_free(stash, buf);
+		if (!stash)
+			return (free(buf), NULL);
+	}
+	free(buf);
+	return (stash);
+}
+
+char	*get_next_line(int fd)
+{
+	static char	*stash;
 	char		*line;
 
-	if (read_into_remainder(fd, remainder) == 0 && remainder[0] == '\0')
+	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
-	nl_pos = find_newline(remainder);
-	if (nl_pos >= 0)
+	if (!stash)
 	{
-		line = extract_line(remainder, nl_pos);
-		shift_remainder(remainder, nl_pos);
-		return (line);
+		stash = malloc(1);
+		if (!stash)
+			return (NULL);
+		stash[0] = '\0';
 	}
-	line = malloc(ft_strlen(remainder) + 1);
-	if (!line)
+	stash = read_to_stash(fd, stash);
+	if (!stash)
 		return (NULL);
-	ft_memcpy(line, remainder, ft_strlen(remainder) + 1);
-	remainder[0] = '\0';
+	line = extract_line(stash);
+	stash = update_stash(stash);
 	return (line);
 }

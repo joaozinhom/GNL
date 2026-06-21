@@ -6,7 +6,7 @@
 /*   By: joaorosa <joaorosa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/19 15:08:57 by joaorosa          #+#    #+#             */
-/*   Updated: 2026/06/19 19:56:54 by joaorosa         ###   ########.fr       */
+/*   Updated: 2026/06/21 13:56:43 by joaorosa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,14 +15,13 @@
 # include <unistd.h>
 # include <stdlib.h>
 
-# define BUFFER_SIZE 42
+# ifndef BUFFER_SIZE
+#  define BUFFER_SIZE 42
+# endif
 
+size_t	ft_strlen(const char *s);
+char	*ft_strchr(const char *s, int c);
 void	*ft_memcpy(void *dst, const void *src, size_t n);
-size_t	ft_strlen(const char *str);
-int		find_newline(char *s);
-char	*extract_line(char *remainder, int nl_pos);
-void	shift_remainder(char *remainder, int nl_pos);
-int		read_into_remainder(int fd, char *remainder);
-char	*gnl(int fd);
-
+char	*ft_strjoin_free(char *s1, char *s2);
+char	*get_next_line(int fd);
 #endif

@@ -12,6 +12,34 @@
 
 #include "get_next_line.h"
 
+size_t	ft_strlen(const char *s)
+{
+	size_t	i;
+
+	i = 0;
+	while (s[i] != '\0')
+		i++;
+	return (i);
+}
+
+char	*ft_strchr(const char *s, int c)
+{
+	size_t	i;
+
+	if (!s)
+		return (NULL);
+	i = 0;
+	while (s[i] != '\0')
+	{
+		if (s[i] == (char)c)
+			return ((char *)(s + i));
+		i++;
+	}
+	if ((char)c == '\0')
+		return ((char *)(s + i));
+	return (NULL);
+}
+
 void	*ft_memcpy(void *dst, const void *src, size_t n)
 {
 	size_t		i;
@@ -31,28 +59,29 @@ void	*ft_memcpy(void *dst, const void *src, size_t n)
 	return (dst);
 }
 
-size_t	ft_strlen(const char *s)
+char	*ft_strjoin_free(char *s1, char *s2)
 {
+	size_t	len1;
+	size_t	len2;
 	size_t	i;
+	char	*res;
 
+	if (!s1 || !s2)
+		return (free(s1), NULL);
+	len1 = ft_strlen(s1);
+	len2 = ft_strlen(s2);
+	res = malloc(len1 + len2 + 1);
+	if (!res)
+		return (free(s1), NULL);
 	i = 0;
-	while (s[i] != '\0')
-		i++;
-	return (i);
-}
-
-int	read_into_remainder(int fd, char *remainder)
-{
-	char	buf[BUFFER_SIZE];
-	ssize_t	bytes_read;
-
-	while (find_newline(remainder) < 0)
+	while (i < len1 + len2)
 	{
-		bytes_read = read(fd, buf, BUFFER_SIZE - 1);
-		if (bytes_read <= 0)
-			return (bytes_read);
-		buf[bytes_read] = '\0';
-		ft_memcpy(remainder + ft_strlen(remainder), buf, ft_strlen(buf) + 1);
+		if (i < len1)
+			res[i] = s1[i];
+		else
+			res[i] = s2[i - len1];
+		i++;
 	}
-	return (1);
+	res[i] = '\0';
+	return (free(s1), res);
 }
